@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, FC } from 'react';
 
 interface NoCopyTextProps {
@@ -6,18 +8,20 @@ interface NoCopyTextProps {
 
 const NoCopyText: FC<NoCopyTextProps> = ({ text }) => {
   useEffect(() => {
-    const handleCopy = (event: ClipboardEvent) => {
-      event.preventDefault();
-      if (event.clipboardData) {
-        event.clipboardData.setData('text/plain', '');
-      }
-    };
+    if (typeof window !== 'undefined') {
+      const handleCopy = (event: ClipboardEvent) => {
+        event.preventDefault();
+        if (event.clipboardData) {
+          event.clipboardData.setData('text/plain', '');
+        }
+      };
 
-    document.addEventListener('copy', handleCopy);
-    
-    return () => {
-      document.removeEventListener('copy', handleCopy);
-    };
+      document.addEventListener('copy', handleCopy);
+
+      return () => {
+        document.removeEventListener('copy', handleCopy);
+      };
+    }
   }, []);
 
   return (

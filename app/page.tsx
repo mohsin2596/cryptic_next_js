@@ -3,7 +3,14 @@ import anime from 'animejs/lib/anime.es.js';
 import { useEffect, useState } from "react";
 import { dummyTriviaQuestions, TriviaQuestion } from "@/models/trivia-question.model";
 import { obfuscateText, deobfuscateText } from '@/utilities/cryptic-utility';
-import NoCopyText from '@/components/no-copy-text.component';
+
+import dynamic from 'next/dynamic'
+ 
+const NoCopyText = dynamic(() => import('@/components/no-copy-text.component'), {
+  ssr: false,
+})
+
+
 
 const Home: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -124,30 +131,37 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'PrintScreen') {
+    if (typeof window !== 'undefined') {
+      const handlePrintScreen = (event: KeyboardEvent) => {
+        if (event.key === 'PrintScreen') {
+          event.preventDefault();
+          alert('Screenshots are disabled!');
+        }
+      };
+
+      const handleKeyup = (event: KeyboardEvent) => {
+        if (event.key === 'PrintScreen') {
+          navigator.clipboard.writeText('');
+          alert('Screenshots are disabled!');
+        }
+      };
+
+      const handleContextMenu = (event: MouseEvent) => {
         event.preventDefault();
-        alert('Screenshots are disabled!');
-      }
-    });
+      };
 
-    document.addEventListener('keyup', function(event) {
-      if (event.key === 'PrintScreen') {
-        navigator.clipboard.writeText('');
-        alert('Screenshots are disabled!');
-      }
-    });
+      document.addEventListener('keydown', handlePrintScreen);
+      document.addEventListener('keyup', handleKeyup);
+      document.addEventListener('contextmenu', handleContextMenu);
 
-    document.addEventListener('contextmenu', function(event) {
-      event.preventDefault();
-    });
-
-    return () => {
-      document.removeEventListener('keydown', () => {});
-      document.removeEventListener('keyup', () => {});
-      document.removeEventListener('contextmenu', () => {});
-    };
+      return () => {
+        document.removeEventListener('keydown', handlePrintScreen);
+        document.removeEventListener('keyup', handleKeyup);
+        document.removeEventListener('contextmenu', handleContextMenu);
+      };
+    }
   }, []);
+
 
   if (obfuscatedTriviaQuestions.length === 0) {
     return <div>Loading...</div>;
@@ -168,61 +182,48 @@ const Home: React.FC = () => {
       ) : (
         <>
           <h1 className="text-2xl mb-4">
-            <NoCopyText text={deobfuscateText(obfuscatedTriviaQuestions[currentQuestionIndex].question)} />
-          </h1>
-          <div className="relative flex items-center justify-center w-full h-64 mb-4">
-            <div className="absolute flex items-center justify-center z-[50]">
-              <div className="relative w-24 h-24">
-                <svg className="absolute inset-0 w-full h-full -rotate-90">
-                  <circle
-                    id="timer-circle"
-                    cx="50%"
-                    cy="50%"
-                    r="45%"
-                    stroke="white"
-                    strokeWidth="8"
-                    fill="black"
-                    strokeDasharray="283"
-                    strokeDashoffset="0"
-                  />
-                </svg>
-                <div className="flex absolute z-[20] items-center justify-center w-full h-full">
-                  <span className="text-2xl text-white">{timeLeft}</span>
-                </div>
-              </div>
-            </div>
-            <div className="absolute flex items-center justify-center w-full h-full">
-              <div className="grid gap-4 grid-cols-2">
-                {obfuscatedTriviaQuestions[currentQuestionIndex].answers.map((answer, index) => (
-                  <button
-                    key={index}
-                    id={`answer-button-${index}`}
-                    onClick={() => handleAnswerClick(index)}
-                    className={`py-2 px-4 rounded hover:bg-blue-700 focus:outline-none w-[300px] ${
-                      isPaused ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500'
-                    }`}
-                    disabled={isPaused}
-                  >
-                    <NoCopyText text={deobfuscateText(answer)} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-center space-x-2 mt-4">
-            {obfuscatedTriviaQuestions.map((_, index) => (
-              <div
-                key={index}
-                className={`w-6 h-6 rounded-full ${
-                  answers[index] === null
-                    ? 'bg-gray-500'
-                    : answers[index]
-                    ? 'bg-green-500'
-                    : 'bg-red-500'
-                }`}
-              ></div>
-            ))}
-          </div>
+  <NoCopyText text={deobfuscateText(obfuscatedTriviaQuestions[currentQuestionIndex].question)} />
+</h1>
+<div className="relative flex items-center justify-center w-full h-64 mb-4">
+  <div className="absolute flex items-center justify-center z-[50]">
+    <div className="relative w-24 h-24">
+      <svg className="absolute inset-0 w-full h-full -rotate-90">
+        <circle
+          id="timer-circle"
+          cx="50%"
+          cy="50%"
+          r="45%"
+          stroke="white"
+          strokeWidth="8"
+          fill="black"
+          strokeDasharray="283"
+          strokeDashoffset="0"
+        />
+      </svg>
+      <div className="flex absolute z-[20] items-center justify-center w-full h-full">
+        <span className="text-2xl text-white">{timeLeft}</span>
+      </div>
+    </div>
+  </div>
+  <div className="absolute flex items-center justify-center w-full h-full">
+    <div className="grid gap-4 grid-cols-2">
+      {obfuscatedTriviaQuestions[currentQuestionIndex].answers.map((answer, index) => (
+        <button
+          key={index}
+          id={`answer-button-${index}`}
+          onClick={() => handleAnswerClick(index)}
+          className={`py-2 px-4 rounded hover:bg-blue-700 focus:outline-none w-[300px] ${
+            isPaused ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500'
+          }`}
+          disabled={isPaused}
+        >
+          <NoCopyText text={deobfuscateText(answer)} />
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
+
         </>
       )}
     </main>
