@@ -3,6 +3,7 @@ import anime from 'animejs/lib/anime.es.js';
 import { useEffect, useState } from "react";
 import { dummyTriviaQuestions, TriviaQuestion } from "@/models/trivia-question.model";
 import { obfuscateText, deobfuscateText } from '@/utilities/cryptic-utility';
+import NoCopyText from '@/components/no-copy-text.component';
 
 const Home: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -49,15 +50,6 @@ const Home: React.FC = () => {
 
     return () => animation.pause();
   }, [currentQuestionIndex, isPaused]);
-
-  useEffect(() => {
-    if (!isGameOver) {
-      document.getElementById('question')!.innerHTML = deobfuscateText(obfuscatedTriviaQuestions[currentQuestionIndex].question);
-      obfuscatedTriviaQuestions[currentQuestionIndex].answers.forEach((answer:any, index:any) => {
-        document.getElementById(`answer-${index}`)!.innerHTML = deobfuscateText(answer);
-      });
-    }
-  }, [currentQuestionIndex, isGameOver]);
 
   const handleAnswerClick = (index: number) => {
     setIsPaused(true);
@@ -113,7 +105,7 @@ const Home: React.FC = () => {
   };
 
   const resetButtonColors = () => {
-    obfuscatedTriviaQuestions[currentQuestionIndex].answers.forEach((_:any, index:any) => {
+    obfuscatedTriviaQuestions[currentQuestionIndex].answers.forEach((_, index) => {
       anime({
         targets: `#answer-button-${index}`,
         backgroundColor: '#1E3A8A',
@@ -176,7 +168,7 @@ const Home: React.FC = () => {
       ) : (
         <>
           <h1 className="text-2xl mb-4">
-            <span id="question" className="blurred-text"></span>
+            <NoCopyText text={deobfuscateText(obfuscatedTriviaQuestions[currentQuestionIndex].question)} />
           </h1>
           <div className="relative flex items-center justify-center w-full h-64 mb-4">
             <div className="absolute flex items-center justify-center z-[50]">
@@ -201,7 +193,7 @@ const Home: React.FC = () => {
             </div>
             <div className="absolute flex items-center justify-center w-full h-full">
               <div className="grid gap-4 grid-cols-2">
-                {obfuscatedTriviaQuestions[currentQuestionIndex].answers.map((answer:any, index:any) => (
+                {obfuscatedTriviaQuestions[currentQuestionIndex].answers.map((answer, index) => (
                   <button
                     key={index}
                     id={`answer-button-${index}`}
@@ -211,7 +203,7 @@ const Home: React.FC = () => {
                     }`}
                     disabled={isPaused}
                   >
-                    <span className="blurred-text" id={`answer-${index}`}></span>
+                    <NoCopyText text={deobfuscateText(answer)} />
                   </button>
                 ))}
               </div>
